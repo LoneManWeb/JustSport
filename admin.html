@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin - Add Products</title>
+        <style>
+            .logo {
+                max-width: 150px;
+                margin: 20px auto;
+            }
+            footer {
+                position: relative;
+                left: 500px;
+                top: 50px;
+            }
+        </style>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    </head>
+    <body>
+        <div class="container mt-5">
+            <img src="https://i.ibb.co/tCQLCFX/justsportimage.jpg" alt="Logo" class="logo">
+            <h1 class="text-center">Admin - Manage Products</h1>
+            <div id="admin-section" style="display: none;">
+                <form id="product-form" class="mb-4">
+                    <div class="form-group">
+                        <label for="category">Product Type</label>
+                        <select id="category" class="form-control" required="">
+                            <option value="" disabled="" selected="">Select Product Type</option>
+                            <option value="Bike - Kids">Bike (Kids)</option>
+                            <option value="Bike - Adult">Bike (Adult)</option>
+                            <option value="Clothing - Kids">Clothing (Kids)</option>
+                            <option value="Clothing - Adult">Clothing (Adult)</option>
+                            <option value="Accessory">Accessory</option>
+                            <option value="Bike Part">Bike Part</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Product Name <i class="bi bi-box"></i></label>
+                        <input type="text" id="name" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label for="price">Price <i class="bi bi-cash"></i></label>
+                        <input type="number" id="price" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label for="stock">Stock Availability <i class="bi bi-check-circle"></i></label>
+                        <input type="number" id="stock" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Image<i class="bi bi-image"></i></label>
+                        <input type="URL" id="image" class="form-control" required="">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description <i class="bi bi-info-circle"></i></label>
+                        <textarea id="description" class="form-control" rows="3" required=""></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="specs">Specifications <i class="bi bi-list-ul"></i></label>
+                        <textarea id="specs" class="form-control" rows="3" required=""></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Add Product
+                    </button>
+                </form>
+                <button id="clear-storage" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Clear Storage
+                </button>
+                <h2 class="mt-4">Current Products</h2>
+                <ul id="product-list" class="list-group"></ul>
+            </div>
+        </div>
+        
+        <footer>
+            <nav>
+                <a href="#">About</a>-<a href="#">Privacy Policy</a>-<a href="#">Terms &amp; Policies</a>-<a href="#">Customer Service</a>
+            </nav>
+            <p>© Just Sport, All Rights Reserved.</p>
+        </footer>
+        
+        <script>
+            const base = "http://localhost:3000/api";
+            const correctPassword = 'LoneManWebsxJustSport123.';
+            let products = [];
+        
+            function checkPassword() {
+                const password = prompt("Enter admin password:");
+                if (password === correctPassword) {
+                    document.getElementById('admin-section').style.display = 'block';
+                    loadProducts();
+                } else {
+                    alert("Incorrect password. Access denied.");
+                }
+            }
+        
+            function loadProducts() {
+                fetch(`${base}/products`)
+                    .then(response => response.json())
+                    .then(data => {
+                        products = data;
+                        renderProductList();
+                    });
+            }
+        
+            function addProduct(category, name, price, stock, image, description, specs) {
+                const newProduct = { category, name, price, stock, image, description, specs };
+                fetch(`${base}/products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newProduct)
+                })
+                .then(response => response.json())
+                .then(() => {
+                    products.push(newProduct);
+                    renderProductList();
+                });
+            }
+        
+            function deleteProduct(index) {
+                const productId = products[index].id;
+                fetch(`${base}/products/${productId}`, {
+                    method: 'DELETE'
+                }).then(() => {
+                    products.splice(index, 1);
+                    renderProductList();
+                });
+            }
+        
+            function renderProductList() {
+                const productList = document.getElementById('product-list');
+                productList.innerHTML = '';
+                
+                products.forEach((product, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    listItem.textContent = `${product.name} - $${product.price}`;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'btn btn-danger btn-sm';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => deleteProduct(index);
+                    listItem.appendChild(deleteButton);
+                    productList.appendChild(listItem);
+                });
+            }
+        
+            document.getElementById('product-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const category = document.getElementById('category').value;
+                const name = document.getElementById('name').value;
+                const price = parseFloat(document.getElementById('price').value);
+                const stock = parseInt(document.getElementById('stock').value, 10);
+                const image = document.getElementById('image').value;
+                const description = document.getElementById('description').value;
+                const specs = document.getElementById('specs').value;
+        
+                addProduct(category, name, price, stock, image, description, specs);
+                document.getElementById('product-form').reset();
+            });
+        
+            checkPassword();
+        </script>
+        
+        </body>
+</html>
