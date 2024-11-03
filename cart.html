@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - Just Sport</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <style>
+       body {
+    max-width: 100%; /* Allow full width */
+    margin: 0; /* Remove default margin */
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.logo {
+    max-width: 150px;
+    margin: 20px auto;
+}
+
+footer {
+    position: relative;
+    left: 50%; /* Center footer */
+    transform: translateX(-50%); /* Adjust position */
+}
+
+.container {
+    padding: 0 15px; /* Add horizontal padding */
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+img {
+    max-width: 100px; /* Limit image size */
+    height: auto;
+}
+
+@media (max-width: 600px) {
+    .cart-item {
+        flex-direction: column; /* Stack items vertically */
+        align-items: flex-start; /* Align to start */
+    }
+
+    button {
+        width: 100%; /* Full-width buttons on small screens */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Just Sport</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Products</a></li>
+                <li class="nav-item"><a class="nav-link" href="cart.html">Cart</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5 text-center">
+        <h1>Shopping Cart</h1>
+        <div id="cart-container" class="mt-4"></div>
+        <h3 id="total-price">Total Price: $0.00</h3>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#checkoutModal">Proceed to Checkout</button>
+    </div>
+
+    <footer>
+        <nav>
+            <a href="#">About</a>-<a href="#">Privacy Policy</a>-<a href="#">Terms &amp; Policies</a>-<a href="#">Customer Service</a>
+        </nav>
+        <p>© Just Sport, All Rights Reserved.</p>
+    </footer>
+
+    <!-- Checkout Modal -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="checkoutModalLabel">Checkout</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="payment-form">
+                        <div class="form-group">
+                            <label for="payment-method">Payment Method</label>
+                            <select id="payment-method" class="form-control" onchange="togglePaymentFields()">
+                                <option value="cod">Cash on Delivery</option>
+                                <option value="credit-card">Credit Card</option>
+                            </select>
+                        </div>
+                        <div id="credit-card-fields" style="display: none;">
+                            <div class="form-group">
+                                <label for="full-name">Full Name</label>
+                                <input type="text" id="full-name" class="form-control" required="">
+                            </div>
+                            <div class="form-group">
+                                <label for="card-number">Card Number</label>
+                                <input type="text" id="card-number" class="form-control" required="">
+                            </div>
+                            <div class="form-group">
+                                <label for="expiry-date">Expiry Date</label>
+                                <input type="text" id="expiry-date" class="form-control" required="" placeholder="MM/YY">
+                            </div>
+                            <div class="form-group">
+                                <label for="cvc">CVC</label>
+                                <input type="text" id="cvc" class="form-control" required="">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" form="payment-form">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    <script>
+        function loadCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartContainer = document.getElementById('cart-container');
+            cartContainer.innerHTML = ''; // Clear current cart contents
+
+            let total = 0;
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+
+                const cartItem = `
+                    <div class="row border-bottom py-2">
+                        <div class="col-md-8">
+                            <h5>${item.name} (x${item.quantity})</h5>
+                            <p>Price: $${item.price.toFixed(2)}</p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <h5>Total: $${itemTotal.toFixed(2)}</h5>
+                            <button class="btn btn-danger" onclick="removeFromCart('${item.id}')">Remove</button>
+                        </div>
+                    </div>
+                `;
+                cartContainer.innerHTML += cartItem;
+            });
+
+            document.getElementById('total-price').innerText = `Total Price: $${total.toFixed(2)}`;
+        }
+
+        function removeFromCart(itemId) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart = cart.filter(item => item.id !== itemId); // Remove item by ID
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart(); // Reload the cart
+        }
+
+        function togglePaymentFields() {
+            const paymentMethod = document.getElementById('payment-method').value;
+            const creditCardFields = document.getElementById('credit-card-fields');
+
+            if (paymentMethod === 'credit-card') {
+                creditCardFields.style.display = 'block';
+            } else {
+                creditCardFields.style.display = 'none';
+            }
+        }
+
+        document.getElementById('payment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            alert("Order placed successfully! Thank you for shopping with us.");
+            localStorage.removeItem('cart'); // Clear cart after successful order
+            loadCart(); // Reload the cart (should be empty)
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCart();
+        });
+    </script>
+
+
+</body></html>
